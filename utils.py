@@ -75,11 +75,17 @@ FORMAT_LABELS = {
 # 多帧格式：这些格式一张文件里可能有多帧，按需求只处理第一帧
 MULTI_FRAME_FORMATS = (FORMAT_TIFF, FORMAT_GIF)
 
-# 界面「输出格式」下拉框的显示文本 -> 内部取值
+# 界面「输出格式」下拉框的选项：显示文本 -> 内部取值。
+# 这是下拉框的唯一数据源：main.py 的 values 与「显示文本 -> 格式常量」的反查都用它，
+# 因此新增输出格式只需要在这里补一行。显示文本必须唯一，否则反查会歧义。
 FORMAT_CHOICES = (
     ("原格式", FORMAT_KEEP),
     ("JPEG", FORMAT_JPEG),
     ("PNG", FORMAT_PNG),
+    ("WebP", FORMAT_WEBP),
+    ("BMP", FORMAT_BMP),
+    ("TIFF", FORMAT_TIFF),
+    ("GIF", FORMAT_GIF),
 )
 
 # 输出子文件夹名（固定写在输入文件夹内部）

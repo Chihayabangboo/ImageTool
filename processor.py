@@ -277,14 +277,19 @@ def resolve_output_format(image, source_path, selected_format, detected_format):
     """决定最终输出格式。
 
     规则：
-    - 用户选择「原格式」：以文件**真实编码格式**为准，这样扩展名骗人
-      （例如 .jpg 实际是 PNG）时也不会存错格式；真实格式未知时退回扩展名判断。
-    - 用户明确选择 JPEG / PNG：尊重用户选择，只有一种例外——
-      图像真的带透明通道（RGBA / LA / 带透明色的调色板图）时不允许转 JPEG，
+    - 用户选择了「原格式」（没有对应的输出扩展名，如 "keep"）：以文件**真实编码格式**
+      为准，这样扩展名骗人（例如 .jpg 实际是 PNG）时也不会存错格式；
+      真实格式未知时退回扩展名判断。
+    - 用户明确选择了某个目标格式（JPEG / PNG / WebP / BMP / TIFF / GIF）：
+      一律尊重用户选择，只有一种例外——目标格式是 JPEG 且图像真的带透明通道
+      （RGBA / LA / 带透明色的调色板图）时改存 PNG，
       否则透明信息会永久丢失、或者被填成白底，两种结果都不是用户想要的。
-    返回 FORMAT_JPEG / FORMAT_PNG，无法判断时返回 None。
+
+    返回目标格式常量，无法判断时返回 None。
     """
-    if selected_format in (FORMAT_JPEG, FORMAT_PNG):
+    selected_extension = get_format_extension(selected_format)
+    if selected_extension:
+        # 扩展名非空 => 用户明确选了某个目标格式，必须生效
         if selected_format == FORMAT_JPEG and has_transparency(image):
             return FORMAT_PNG
         return selected_format
@@ -292,6 +297,9 @@ def resolve_output_format(image, source_path, selected_format, detected_format):
         return FORMAT_PNG
     if detected_format in ("JPEG", "JPG"):
         return FORMAT_JPEG
+    if detected_format in ("WEBP", "BMP", "TIFF", "GIF"):
+        # 真实编码格式就是这些新格式时，按真实格式输出
+        return resolve_target_format(source_path, selected_format) or detected_format
     return resolve_target_format(source_path, selected_format)
 
 
